@@ -44,8 +44,8 @@ Coming soon:
 ---
 
 ## Resources
-- API Reference: https://github.com/paywaz/paywaz-public-api  
-- Docs: https://github.com/paywaz/paywaz-docs  
+- API Reference: https://github.com/hellopaywaz/paywaz-public-api  
+- Docs: https://github.com/hellopaywaz/paywaz-docs  
 - Website: https://paywaz.com  
 
 ---
