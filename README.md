@@ -50,6 +50,7 @@ Coming soon:
 
 ---
 
-## ⚠ These samples are for demonstration only. Do not use in production without proper security hardening.
+⚠ These samples are for demonstration only. 
+Do not use in production without proper security hardening.
 
 Paywaz.com LLC — *Zero-Fee Crypto-Native Payments.*
