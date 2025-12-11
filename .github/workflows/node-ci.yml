@@ -1,36 +1,48 @@
-name: Build and Test
+name: Node CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main ]
   pull_request:
-    branches: [main, dev]
+    branches: [ main ]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
+          if npm run | grep -q "lint"; then
+            npm run lint
           else
-            npm install
+            echo "No lint script – skipping"
           fi
 
-      - name: Build project
+      - name: Test
+        run: |
+          if npm run | grep -q "test"; then
+            npm test
+          else
+            echo "No test script – skipping"
+          fi
+
+      - name: Build
         run: |
           if npm run | grep -q "build"; then
             npm run build
           else
-            echo "No build script found — skipping."
+            echo "No build script – skipping"
           fi
