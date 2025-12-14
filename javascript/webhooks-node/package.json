@@ -2,6 +2,10 @@
   "name": "paywaz-samples-webhooks-node",
   "private": true,
   "type": "module",
+  "description": "Paywaz webhook receiver sample (raw-body + HMAC verification)",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.mjs",
     "test:send": "node send-test-webhook.mjs"
