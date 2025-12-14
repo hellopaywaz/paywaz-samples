@@ -10,17 +10,16 @@ These examples are intentionally lightweight and suitable for:
 
 ---
 
-## Available Samples
+# Paywaz Samples
 
-### **JavaScript**
-- Create a checkout session  
-- Verify transaction status  
-- Auto-convert token demonstration  
+## JavaScript
+- `javascript/payments` — create + fetch payment (Node 20)
+- `javascript/webhooks-express` — raw webhook verification (Node http server)
+- `javascript/nextjs-webhook` — framework-specific webhook handler
 
-### **Python**
-- Basic payment request  
-- Merchant status polling  
-- Webhook receiver example (coming soon)  
+## Python
+- `python/payments` — create + fetch payment
+- `python/webhooks-fastapi` — webhook receiver + signature verification 
 
 ### **cURL**
 Simple request examples for quick testing and debugging.
