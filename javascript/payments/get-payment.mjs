@@ -22,14 +22,18 @@ const res = await fetch(`${API_BASE}/payments/${encodeURIComponent(PAYMENT_ID)}`
   }
 });
 
+const servedVersion = res.headers.get("paywaz-version");
 const text = await res.text();
 let json;
 try { json = JSON.parse(text); } catch { json = { raw: text }; }
 
 if (!res.ok) {
-  console.error("Get payment failed:", res.status, json);
+  console.error("❌ Get payment failed:", res.status);
+  if (servedVersion) console.error("Served Paywaz-Version:", servedVersion);
+  console.error(JSON.stringify(json, null, 2));
   process.exit(1);
 }
 
-console.log("✅ Payment status:");
+console.log("✅ Payment retrieved");
+if (servedVersion) console.log("Served Paywaz-Version:", servedVersion);
 console.log(JSON.stringify(json, null, 2));
