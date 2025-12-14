@@ -1,31 +1,37 @@
-# Paywaz Payments (Node)
+# Paywaz Payments (Node 20)
 
-## Run
+## Setup
 ```bash
 cp .env.example .env
+# fill PAYWAZ_API_KEY + PAYWAZ_DESTINATION
 npm install
+Create a payment
+bash
+Copy code
 npm run create
-# copy the returned id into PAYWAZ_PAYMENT_ID
+Retrieve a payment
+bash
+Copy code
 npm run get
-
 Notes:
 
-Always send Paywaz-Version.
-Always send Idempotency-Key for create endpoints.
-Adjust payload fields to match your OpenAPI schema.
+Idempotency-Key is required for POST /payments.
+
+Send Paywaz-Version to pin behavior.
 
 yaml
 Copy code
 
 ---
 
-## B) Webhooks example (Express-like, but no framework dependency)
-This is the “trust maker”: raw body + HMAC + timestamp tolerance.
+# 2) JavaScript Webhooks Example (Raw Body + HMAC verify)
 
-### `javascript/webhooks-express/package.json`
+This is the “Stripe-grade” pattern: **raw request body**, constant-time compare, timestamp tolerance.
+
+## `paywaz-samples/javascript/webhooks-node/package.json`
 ```json
 {
-  "name": "paywaz-samples-webhooks",
+  "name": "paywaz-samples-webhooks-node",
   "private": true,
   "type": "module",
   "scripts": {
