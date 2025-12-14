@@ -1,0 +1,102 @@
+name: Samples CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  javascript-samples:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # -----------------------
+      # Payments sample checks
+      # -----------------------
+      - name: Install deps (payments)
+        working-directory: javascript/payments
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Syntax check (payments)
+        working-directory: javascript/payments
+        run: |
+          node --check create-payment.mjs
+          node --check get-payment.mjs
+
+      # --------------------------------
+      # Webhooks-node sample checks + run
+      # --------------------------------
+      - name: Install deps (webhooks-node)
+        working-directory: javascript/webhooks-node
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Syntax check (webhooks-node)
+        working-directory: javascript/webhooks-node
+        run: |
+          node --check server.mjs
+          node --check verify-signature.mjs
+          node --check sign-webhook.mjs
+          node --check send-test-webhook.mjs
+
+      - name: Start webhook server
+        working-directory: javascript/webhooks-node
+        env:
+          PORT: "8787"
+          PAYWAZ_WEBHOOK_SECRET: "whsec_test_secret_for_ci"
+        run: |
+          # start server in background
+          nohup npm start > server.log 2>&1 &
+          echo $! > server.pid
+
+          # wait for server to come up (simple port check)
+          for i in {1..30}; do
+            if nc -z localhost 8787; then
+              echo "Server is up"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "Server did not start in time"
+          cat server.log
+          exit 1
+
+      - name: Send signed test webhook (local)
+        working-directory: javascript/webhooks-node
+        env:
+          PORT: "8787"
+          PAYWAZ_WEBHOOK_SECRET: "whsec_test_secret_for_ci"
+        run: |
+          # run sender and assert we get a 200
+          output="$(npm run test:send)"
+          echo "$output"
+          echo "$output" | grep -E "Response:\s*200"
+
+      - name: Stop webhook server
+        if: always()
+        working-directory: javascript/webhooks-node
+        run: |
+          if [ -f server.pid ]; then
+            kill "$(cat server.pid)" || true
+          fi
+          echo "Server log:"
+          cat server.log || true
