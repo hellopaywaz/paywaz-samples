@@ -56,15 +56,22 @@ jobs:
           node --check sign-webhook.mjs
           node --check send-test-webhook.mjs
 
-      - name: Start webhook server
+            - name: Start webhook server
         working-directory: javascript/webhooks-node
         env:
           PORT: "8787"
           PAYWAZ_WEBHOOK_SECRET: "whsec_test_secret_for_ci"
         run: |
-          # start server in background
           nohup npm start > server.log 2>&1 &
           echo $! > server.pid
+
+          for i in {1..30}; do
+            if curl -sSf http://localhost:8787/ >/dev/null 2>&1; then
+              echo "Server is up"
+              break
+            fi
+            sleep 1
+          done
 
           # wait for server to come up (simple port check)
           for i in {1..30}; do
