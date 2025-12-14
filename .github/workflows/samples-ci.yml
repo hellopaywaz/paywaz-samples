@@ -22,14 +22,13 @@ jobs:
       # -----------------------
       # Payments sample checks
       # -----------------------
-      - name: Install deps (payments)
+            - name: Install deps (payments)
         working-directory: javascript/payments
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm ci
+
+      - name: Install deps (webhooks-node)
+        working-directory: javascript/webhooks-node
+        run: npm ci
 
       - name: Syntax check (payments)
         working-directory: javascript/payments
