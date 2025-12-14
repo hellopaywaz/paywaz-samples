@@ -22,13 +22,14 @@ jobs:
       # -----------------------
       # Payments sample checks
       # -----------------------
-            - name: Install deps (payments)
+      - name: Install deps (payments)
         working-directory: javascript/payments
-        run: npm ci
-
-      - name: Install deps (webhooks-node)
-        working-directory: javascript/webhooks-node
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Syntax check (payments)
         working-directory: javascript/payments
@@ -56,7 +57,7 @@ jobs:
           node --check sign-webhook.mjs
           node --check send-test-webhook.mjs
 
-            - name: Start webhook server
+      - name: Start webhook server (background)
         working-directory: javascript/webhooks-node
         env:
           PORT: "8787"
@@ -64,38 +65,34 @@ jobs:
         run: |
           nohup npm start > server.log 2>&1 &
           echo $! > server.pid
+          sleep 1
+          echo "Server PID: $(cat server.pid)"
 
-          for i in {1..30}; do
-            if curl -sSf http://localhost:8787/ >/dev/null 2>&1; then
-              echo "Server is up"
-              break
-            fi
-            sleep 1
-          done
-
-          # wait for server to come up (simple port check)
-          for i in {1..30}; do
-            if nc -z localhost 8787; then
-              echo "Server is up"
-              exit 0
-            fi
-            sleep 1
-          done
-
-          echo "Server did not start in time"
-          cat server.log
-          exit 1
-
-      - name: Send signed test webhook (local)
+      - name: Send signed test webhook (retry until 200)
         working-directory: javascript/webhooks-node
         env:
           PORT: "8787"
           PAYWAZ_WEBHOOK_SECRET: "whsec_test_secret_for_ci"
         run: |
-          # run sender and assert we get a 200
-          output="$(npm run test:send)"
-          echo "$output"
-          echo "$output" | grep -E "Response:\s*200"
+          set -e
+
+          for i in {1..15}; do
+            echo "Attempt $i: sending signed webhook..."
+            output="$(npm run -s test:send || true)"
+            echo "$output"
+
+            if echo "$output" | grep -E "Response:\s*200" >/dev/null 2>&1; then
+              echo "✅ Webhook smoke test passed"
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          echo "❌ Webhook smoke test did not return 200"
+          echo "Server log:"
+          cat server.log || true
+          exit 1
 
       - name: Stop webhook server
         if: always()
