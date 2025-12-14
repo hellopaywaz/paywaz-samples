@@ -35,6 +35,13 @@ Copy code
 - `javascript/payments` — Create + retrieve payments (`POST /payments`, `GET /payments/{paymentId}`)
 - `javascript/webhooks-node` — Webhook receiver with raw-body signature verification (`POST /webhooks/payments`)
 
+## Local test (no Paywaz needed)
+Terminal A:
+```bash
+cp .env.example .env
+npm install
+npm start
+
 ## Notes
 - Payments require `Idempotency-Key`.
 - Webhooks must be verified using the **raw** request body with:
