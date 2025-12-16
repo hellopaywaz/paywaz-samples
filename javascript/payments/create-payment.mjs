@@ -1,14 +1,19 @@
 import "dotenv/config";
+import { PaywazClient } from "@paywaz/sdk";
 
 const API_BASE = process.env.PAYWAZ_API_BASE || "https://api.paywaz.com";
 const API_KEY = process.env.PAYWAZ_API_KEY;
-const VERSION = process.env.PAYWAZ_VERSION || "2025-01-01";
 const DESTINATION = process.env.PAYWAZ_DESTINATION;
+
+// Optional fields for your payload (safe defaults)
+const AMOUNT = process.env.PAYWAZ_AMOUNT || "49.99";
+const CURRENCY = process.env.PAYWAZ_CURRENCY || "PZUSD";
 
 if (!API_KEY) {
   console.error("Missing PAYWAZ_API_KEY in .env");
   process.exit(1);
 }
+
 if (!DESTINATION) {
   console.error("Missing PAYWAZ_DESTINATION in .env (required by CreatePaymentRequest)");
   process.exit(1);
@@ -17,46 +22,35 @@ if (!DESTINATION) {
 // Required by your OpenAPI: Idempotency-Key header (must be unique per logical create)
 const IDEMPOTENCY_KEY = `sample-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
+// IMPORTANT:
+// Your SDK currently uses `baseUrl` as the 2nd argument to PaymentsClient,
+// but PaywazClient options previously used `apiVersion`. After you apply the SDK fix,
+// this works as intended.
+const client = new PaywazClient({
+  apiKey: API_KEY,
+  baseUrl: API_BASE
+});
+
 const payload = {
-  // matches CreatePaymentRequest schema
-  amount: "49.99",
-  currency: "USD",
+  amount: AMOUNT,
+  currency: CURRENCY,
   destination: DESTINATION,
-  autoConvert: false,
   metadata: {
-    invoiceId: `INV-${Math.floor(Math.random() * 1_000_000)}`,
-    source: "paywaz-samples/javascript/payments"
+    source: "paywaz-samples/javascript/payments",
+    createdAt: new Date().toISOString()
   }
 };
 
-const res = await fetch(`${API_BASE}/payments`, {
-  method: "POST",
-  headers: {
-    "Authorization": `Bearer ${API_KEY}`,
-    "Content-Type": "application/json",
-    "Paywaz-Version": VERSION,
-    "Idempotency-Key": IDEMPOTENCY_KEY
-  },
-  body: JSON.stringify(payload)
-});
+try {
+  const res = await client.payments.create(payload, IDEMPOTENCY_KEY);
 
-const servedVersion = res.headers.get("paywaz-version");
-const text = await res.text();
-let json;
-try { json = JSON.parse(text); } catch { json = { raw: text }; }
+  console.log("✅ Created payment:");
+  console.log(JSON.stringify(res, null, 2));
 
-if (!res.ok) {
-  console.error("❌ Create payment failed:", res.status);
-  if (servedVersion) console.error("Served Paywaz-Version:", servedVersion);
-  console.error(JSON.stringify(json, null, 2));
+  // Helpful hint: if the API returns an id, you can copy it into PAYWAZ_PAYMENT_ID for get-payment.mjs
+  // Example: export PAYWAZ_PAYMENT_ID="<id>"
+} catch (err) {
+  console.error("❌ Create payment failed:");
+  console.error(err?.response?.data || err);
   process.exit(1);
 }
-
-console.log("✅ Payment created");
-if (servedVersion) console.log("Served Paywaz-Version:", servedVersion);
-console.log(JSON.stringify(json, null, 2));
-
-console.log("\nNext:");
-console.log("1) Copy the payment id (json.id)");
-console.log("2) Put it into PAYWAZ_PAYMENT_ID in your .env");
-console.log("3) Run: npm run get");
