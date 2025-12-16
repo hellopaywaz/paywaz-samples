@@ -1,25 +1,39 @@
 # Paywaz Sample Integrations
 
-This repository contains example integrations demonstrating how to interact with the **Paywaz Public API** and upcoming SDKs.
+This repository contains lightweight, runnable examples demonstrating how to use the **Paywaz Public API** and the **Paywaz SDK**.
 
-These examples are intentionally lightweight and suitable for:
-- Developers testing Paywaz
-- Integrations with web apps
-- POS or ecommerce platforms
-- Enterprise technical evaluations
+✅ **JavaScript samples use the SDK package name:** `@paywaz/sdk`  
+✅ **Node 20+ recommended** for consistent execution
 
 ---
 
-# Paywaz Samples
+## Samples
 
-## JavaScript
-- `javascript/payments` — create + fetch payment (Node 20)
-- `javascript/webhooks-express` — raw webhook verification (Node http server)
+### JavaScript (Node 20+)
+- `javascript/payments` — create + fetch payment
+- `javascript/webhooks-express` — webhook receiver + signature verification
 - `javascript/nextjs-webhook` — framework-specific webhook handler
 
-## Python
+### Python
 - `python/payments` — create + fetch payment
-- `python/webhooks-fastapi` — webhook receiver + signature verification 
+- `python/webhooks-fastapi` — webhook receiver + signature verification
+
+---
+
+## Getting started (Node 20+)
+
+From the repo root:
+
+```bash
+node -v
+
+# copy env template (pick the right path for the sample you run)
+cp .env.example .env
+
+# run a sample (example: javascript/payments)
+cd javascript/payments
+npm install
+npm run start
 
 ### **cURL**
 Simple request examples for quick testing and debugging.
