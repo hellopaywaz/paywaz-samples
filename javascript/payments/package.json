@@ -3,11 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node create-payment.mjs",
     "create": "node create-payment.mjs",
     "get": "node get-payment.mjs"
   },
   "dependencies": {
-  "@paywaz/sdk": "github:hellopaywaz/paywaz-sdk-js",
-  "dotenv": "^16.4.5"
+    "@paywaz/sdk": "github:hellopaywaz/paywaz-sdk-js#main",
+    "dotenv": "^16.4.5"
   }
 }
