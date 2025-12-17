@@ -1,32 +1,41 @@
 import "dotenv/config";
-import { PaywazClient } from "@paywaz/sdk";
 
-const API_BASE = process.env.PAYWAZ_API_BASE || "https://api.paywaz.com";
-const API_KEY = process.env.PAYWAZ_API_KEY;
-const PAYMENT_ID = process.env.PAYWAZ_PAYMENT_ID;
+const API_BASE = process.env.PAYWAZ_API_BASE || "http://localhost:3000";
+const API_KEY = (process.env.PAYWAZ_API_KEY || "").trim();
+const VERSION = (process.env.PAYWAZ_VERSION || "2025-01-01").trim();
+
+const PAYMENT_ID = (process.env.PAYWAZ_PAYMENT_ID || "").trim();
 
 if (!API_KEY) {
   console.error("Missing PAYWAZ_API_KEY in .env");
   process.exit(1);
 }
-
 if (!PAYMENT_ID) {
-  console.error("Missing PAYWAZ_PAYMENT_ID in .env (set it after running create)");
+  console.error("Missing PAYWAZ_PAYMENT_ID in .env (set it after running create-payment.mjs)");
   process.exit(1);
 }
 
-const client = new PaywazClient({
-  apiKey: API_KEY,
-  baseUrl: API_BASE
+const res = await fetch(`${API_BASE}/payments/${encodeURIComponent(PAYMENT_ID)}`, {
+  method: "GET",
+  headers: {
+    "X-API-Key": API_KEY,
+    "Paywaz-Version": VERSION,
+  },
 });
 
+const text = await res.text();
+let json;
 try {
-  const res = await client.payments.retrieve(PAYMENT_ID);
+  json = JSON.parse(text);
+} catch {
+  json = { raw: text };
+}
 
-  console.log("✅ Retrieved payment:");
-  console.log(JSON.stringify(res, null, 2));
-} catch (err) {
-  console.error("❌ Get payment failed:");
-  console.error(err?.response?.data || err);
+if (!res.ok) {
+  console.error(`Request failed: ${res.status} ${res.statusText}`);
+  console.error(json);
   process.exit(1);
 }
+
+console.log("✅ Retrieved payment:");
+console.log(JSON.stringify(json, null, 2));
