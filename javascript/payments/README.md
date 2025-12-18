@@ -1,43 +1,30 @@
 # Paywaz Payments (Node 20)
 
+Create and retrieve payments using the Paywaz SDK sample.
+
 ## Setup
+
 ```bash
 cp .env.example .env
-# fill PAYWAZ_API_KEY + PAYWAZ_DESTINATION
+# set PAYWAZ_API_KEY and PAYWAZ_DESTINATION (optional: PAYWAZ_AMOUNT, PAYWAZ_CURRENCY)
 npm install
-Create a payment
-bash
-Copy code
+```
+
+## Create a payment
+
+```bash
 npm run create
-Retrieve a payment
-bash
-Copy code
+```
+
+## Retrieve a payment
+
+Set `PAYWAZ_PAYMENT_ID` in `.env` (tip: use the ID printed by the create script), then run:
+
+```bash
 npm run get
-Notes:
+```
 
-Idempotency-Key is required for POST /payments.
+## Notes
 
-Send Paywaz-Version to pin behavior.
-
-yaml
-Copy code
-
----
-
-# 2) JavaScript Webhooks Example (Raw Body + HMAC verify)
-
-This is the “Stripe-grade” pattern: **raw request body**, constant-time compare, timestamp tolerance.
-
-## `paywaz-samples/javascript/webhooks-node/package.json`
-```json
-{
-  "name": "paywaz-samples-webhooks-node",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "start": "node server.mjs"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.5"
-  }
-}
+- `Idempotency-Key` is required for `POST /payments`.
+- Send `Paywaz-Version` to pin API behavior.
