@@ -1,22 +1,26 @@
 # Paywaz Sample Integrations
 
-This repository contains lightweight, runnable examples demonstrating how to use the **Paywaz Public API** and the **Paywaz SDK**.
+Lightweight, runnable examples demonstrating the **Paywaz Public API** and the **Paywaz SDK**.
 
-✅ **JavaScript samples use the SDK package name:** `@paywaz/sdk`  
-✅ **Node 20+ recommended** for consistent execution
+- ✅ JavaScript samples use the SDK package name: `@paywaz/sdk`
+- ✅ Node 20+ recommended for consistent execution
 
 ---
 
 ## Samples
 
 ### JavaScript (Node 20+)
-- `javascript/payments` — create + fetch payment
+- `javascript/payments` — create and fetch payments
 - `javascript/webhooks-express` — webhook receiver + signature verification
+- `javascript/webhooks-node` — raw-body webhook receiver with secret rotation and replay protection
 - `javascript/nextjs-webhook` — framework-specific webhook handler
+- `javascript/simple-checkout.js` — minimal placeholder checkout flow
 
 ### Python
-- `python/payments` — create + fetch payment
-- `python/webhooks-fastapi` — webhook receiver + signature verification
+- `python/create-payment.py` — create a payment (placeholder flow)
+
+### cURL
+- `curl/basic-request.sh` — simple request example for quick testing and debugging
 
 ---
 
@@ -34,16 +38,14 @@ cp .env.example .env
 cd javascript/payments
 npm install
 npm run start
-
-### **cURL**
-Simple request examples for quick testing and debugging.
+```
 
 ---
 
 ## Requirements
 - API Key (coming soon)
-- Node.js 18+  
-- Python 3.10+  
+- Node.js 18+
+- Python 3.10+
 
 ---
 
@@ -57,13 +59,13 @@ Coming soon:
 ---
 
 ## Resources
-- API Reference: https://github.com/hellopaywaz/paywaz-public-api  
-- Docs: https://github.com/hellopaywaz/paywaz-docs  
-- Website: https://paywaz.com  
+- API Reference: https://github.com/hellopaywaz/paywaz-public-api
+- Docs: https://github.com/hellopaywaz/paywaz-docs
+- Website: https://paywaz.com
 
 ---
 
-⚠ These samples are for demonstration only. 
+⚠ These samples are for demonstration only.
 Do not use in production without proper security hardening.
 
 Paywaz.com LLC — *Zero-Fee Crypto-Native Payments.*

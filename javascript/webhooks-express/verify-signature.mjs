@@ -9,7 +9,10 @@ import crypto from "node:crypto";
  * ⚠️ If your OpenAPI uses different header names/format, adjust here once and all samples stay correct.
  */
 export function verifyPaywazWebhook({ rawBody, signatureHeader, secret, toleranceSeconds = 300 }) {
+  if (!secret) throw new Error("Missing webhook secret");
   if (!signatureHeader) throw new Error("Missing Paywaz-Signature header");
+
+  const normalizedBody = typeof rawBody === "string" ? rawBody : String(rawBody ?? "");
 
   const parts = Object.fromEntries(
     signatureHeader.split(",").map(kv => {
@@ -29,7 +32,7 @@ export function verifyPaywazWebhook({ rawBody, signatureHeader, secret, toleranc
     throw new Error("Timestamp outside tolerance (possible replay)");
   }
 
-  const signedPayload = `${timestamp}.${rawBody}`;
+  const signedPayload = `${timestamp}.${normalizedBody}`;
   const expected = crypto.createHmac("sha256", secret).update(signedPayload, "utf8").digest("hex");
 
   // constant-time compare
