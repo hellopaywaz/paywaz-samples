@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node server.mjs",
+    "test": "node --test",
     "test:send": "node send-test-webhook.mjs"
   },
   "dependencies": {
