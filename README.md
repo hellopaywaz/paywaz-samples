@@ -40,6 +40,23 @@ npm install
 npm run start
 ```
 
+### Golden commands
+Run these from the repo root to sanity-check the samples:
+
+```bash
+# Parse-check JavaScript samples
+npm run lint
+
+# Webhook signature unit tests (node:test)
+npm test
+
+# Alias for lint (no compilation required yet)
+npm run build
+
+# Run the payments sample (requires PAYWAZ_* env vars)
+npm start
+```
+
 ---
 
 ## Requirements

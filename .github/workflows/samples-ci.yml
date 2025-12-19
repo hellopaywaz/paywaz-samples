@@ -19,6 +19,18 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install root tooling
+        run: npm ci
+
+      - name: Lint (golden command)
+        run: npm run lint
+
+      - name: Test (golden command)
+        run: npm test
+
+      - name: Build (golden command)
+        run: npm run build
+
       # -----------------------
       # Payments sample checks
       # -----------------------
