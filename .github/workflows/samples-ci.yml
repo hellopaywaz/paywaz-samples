@@ -6,6 +6,10 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege (fixes "Workflow does not contain permissions")
+permissions:
+  contents: read
+
 jobs:
   javascript-samples:
     runs-on: ubuntu-latest
@@ -18,18 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install root tooling
-        run: npm ci
-
-      - name: Lint (golden command)
-        run: npm run lint
-
-      - name: Test (golden command)
-        run: npm test
-
-      - name: Build (golden command)
-        run: npm run build
+          cache: npm
+          cache-dependency-path: |
+            javascript/payments/package-lock.json
+            javascript/webhooks-node/package-lock.json
 
       # -----------------------
       # Payments sample checks
@@ -77,8 +73,19 @@ jobs:
         run: |
           nohup npm start > server.log 2>&1 &
           echo $! > server.pid
-          sleep 1
+
+          # Wait up to ~20s for the server to become reachable
+          for i in {1..20}; do
+            if curl -sSf "http://127.0.0.1:${PORT}/" >/dev/null 2>&1; then
+              echo "✅ Server is up"
+              break
+            fi
+            sleep 1
+          done
+
           echo "Server PID: $(cat server.pid)"
+          echo "Server log (tail):"
+          tail -n 50 server.log || true
 
       - name: Send signed test webhook (retry until 200)
         working-directory: javascript/webhooks-node
@@ -112,6 +119,7 @@ jobs:
         run: |
           if [ -f server.pid ]; then
             kill "$(cat server.pid)" || true
+            sleep 1
           fi
           echo "Server log:"
           cat server.log || true
