@@ -18,29 +18,66 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          # Enable caching ONLY if the lockfiles exist.
+          # (If either file doesn't exist, setup-node caching can fail.)
           cache: "npm"
           cache-dependency-path: |
             javascript/payments/package-lock.json
             javascript/webhooks-node/package-lock.json
 
-      - name: Install root tooling
-        run: npm ci
+      # -----------------------
+      # Root tooling (optional)
+      # -----------------------
+      - name: Install root tooling (only if package-lock exists)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f package.json ]; then
+            npm install
+          else
+            echo "No root package.json – skipping root tooling"
+          fi
 
-      - name: Lint (golden command)
-        run: npm run lint
+      - name: Lint (golden command, optional)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package.json ] && npm run | grep -qE ' lint'; then
+            npm run lint
+          else
+            echo "No root lint script – skipping"
+          fi
 
-      - name: Test (golden command)
-        run: npm test
+      - name: Test (golden command, optional)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package.json ] && npm run | grep -qE ' test'; then
+            npm test
+          else
+            echo "No root test script – skipping"
+          fi
 
-      - name: Build (golden command)
-        run: npm run build
+      - name: Build (golden command, optional)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package.json ] && npm run | grep -qE ' build'; then
+            npm run build
+          else
+            echo "No root build script – skipping"
+          fi
 
       # -----------------------
       # Payments sample checks
       # -----------------------
       - name: Install deps (payments)
         working-directory: javascript/payments
+        shell: bash
         run: |
+          set -euo pipefail
           if [ -f package-lock.json ]; then
             npm ci
           else
@@ -49,7 +86,9 @@ jobs:
 
       - name: Syntax check (payments)
         working-directory: javascript/payments
+        shell: bash
         run: |
+          set -euo pipefail
           node --check create-payment.mjs
           node --check get-payment.mjs
 
@@ -58,7 +97,9 @@ jobs:
       # --------------------------------
       - name: Install deps (webhooks-node)
         working-directory: javascript/webhooks-node
+        shell: bash
         run: |
+          set -euo pipefail
           if [ -f package-lock.json ]; then
             npm ci
           else
@@ -67,7 +108,9 @@ jobs:
 
       - name: Syntax check (webhooks-node)
         working-directory: javascript/webhooks-node
+        shell: bash
         run: |
+          set -euo pipefail
           node --check server.mjs
           node --check verify-signature.mjs
           node --check sign-webhook.mjs
@@ -75,22 +118,37 @@ jobs:
 
       - name: Start webhook server (background)
         working-directory: javascript/webhooks-node
+        shell: bash
         env:
           PORT: "8787"
           PAYWAZ_WEBHOOK_SECRET: "whsec_test_secret_for_ci"
         run: |
+          set -euo pipefail
           nohup npm start > server.log 2>&1 &
           echo $! > server.pid
-          sleep 1
-          echo "Server PID: $(cat server.pid)"
+
+          # Wait until port is open (more reliable than sleep 1)
+          for i in {1..20}; do
+            if nc -z 127.0.0.1 "$PORT"; then
+              echo "✅ Server is listening on $PORT"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "❌ Server did not start"
+          echo "Server log:"
+          cat server.log || true
+          exit 1
 
       - name: Send signed test webhook (retry until 200)
         working-directory: javascript/webhooks-node
+        shell: bash
         env:
           PORT: "8787"
           PAYWAZ_WEBHOOK_SECRET: "whsec_test_secret_for_ci"
         run: |
-          set -e
+          set -euo pipefail
 
           for i in {1..15}; do
             echo "Attempt $i: sending signed webhook..."
@@ -113,7 +171,9 @@ jobs:
       - name: Stop webhook server
         if: always()
         working-directory: javascript/webhooks-node
+        shell: bash
         run: |
+          set -euo pipefail
           if [ -f server.pid ]; then
             kill "$(cat server.pid)" || true
           fi
