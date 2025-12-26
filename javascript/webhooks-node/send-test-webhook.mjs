@@ -1,4 +1,5 @@
 import "dotenv/config";
+import crypto from "node:crypto";
 import { signPaywazWebhook } from "./sign-webhook.mjs";
 
 const SECRET = process.env.PAYWAZ_WEBHOOK_SECRET;
@@ -14,14 +15,14 @@ if (!SECRET) {
 
 // Spec-accurate example event matching your WebhookEvent schema
 const event = {
-  id: `evt_${Math.random().toString(16).slice(2)}`,
+  id: `evt_${crypto.randomUUID()}`,
   type: "payment.pending",
   eventVersion: "2025-01-01",
   livemode: false,
   createdAt: new Date().toISOString(),
   data: {
     payment: {
-      id: `pay_${Math.random().toString(16).slice(2)}`,
+      id: `pay_${crypto.randomUUID()}`,
       status: "pending",
       amount: "49.99",
       currency: "USD",
