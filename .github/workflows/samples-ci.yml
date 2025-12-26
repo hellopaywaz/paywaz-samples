@@ -18,23 +18,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          # Enable caching ONLY if the lockfiles exist.
-          # (If either file doesn't exist, setup-node caching can fail.)
-          cache: "npm"
-          cache-dependency-path: |
-            javascript/payments/package-lock.json
-            javascript/webhooks-node/package-lock.json
 
       # -----------------------
       # Root tooling (optional)
       # -----------------------
-      - name: Install root tooling (only if package-lock exists)
+      - name: Install root tooling (only if package.json exists)
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f package-lock.json ]; then
-            npm ci
-          elif [ -f package.json ]; then
+          if [ -f package.json ]; then
             npm install
           else
             echo "No root package.json – skipping root tooling"
@@ -78,11 +70,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+          npm install
 
       - name: Syntax check (payments)
         working-directory: javascript/payments
@@ -100,11 +88,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+          npm install
 
       - name: Syntax check (webhooks-node)
         working-directory: javascript/webhooks-node
@@ -124,10 +108,11 @@ jobs:
           PAYWAZ_WEBHOOK_SECRET: "whsec_test_secret_for_ci"
         run: |
           set -euo pipefail
+
           nohup npm start > server.log 2>&1 &
           echo $! > server.pid
 
-          # Wait until port is open (more reliable than sleep 1)
+          # Wait until server is listening (more reliable than sleep 1)
           for i in {1..20}; do
             if nc -z 127.0.0.1 "$PORT"; then
               echo "✅ Server is listening on $PORT"
